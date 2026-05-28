@@ -79,8 +79,21 @@ services:
     # 내부 서비스 - 외부 노출 불필요
     # ports:
     #   - 7233:7233
-    volumes:
-      - ./packages/backend-lib/temporal-dynamicconfig:/etc/temporal/config/dynamicconfig
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /etc/temporal/config/dynamicconfig
+        cat > /etc/temporal/config/dynamicconfig/prod.yaml << 'EOF'
+        limit.maxIDLength:
+          - value: 255
+            constraints: {}
+        frontend.enableServerVersionCheck:
+          - value: false
+            constraints: {}
+        EOF
+        /etc/temporal/entrypoint.sh
+
   temporal-ui:
     profiles: ["temporal-ui"]
     container_name: temporal-ui
