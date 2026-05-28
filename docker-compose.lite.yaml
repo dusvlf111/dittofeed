@@ -64,6 +64,7 @@ services:
       driver: "local"
     depends_on:
       - postgres
+      - temporal-init 
     environment:
       - DB=postgresql
       - DB_PORT=${DATABASE_PORT:-5432}
@@ -79,20 +80,23 @@ services:
     # 내부 서비스 - 외부 노출 불필요
     # ports:
     #   - 7233:7233
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /etc/temporal/config/dynamicconfig
-        cat > /etc/temporal/config/dynamicconfig/prod.yaml << 'EOF'
-        limit.maxIDLength:
-          - value: 255
-            constraints: {}
-        frontend.enableServerVersionCheck:
-          - value: false
-            constraints: {}
-        EOF
-        /start-temporal.sh
+    volumes:
+      - temporal-dynamicconfig:/etc/temporal/config/dynamicconfig
+
+  temporal-init:
+    image: busybox
+    command: >
+      sh -c "mkdir -p /dynamicconfig &&
+      echo 'limit.maxIDLength:' > /dynamicconfig/prod.yaml &&
+      echo '  - value: 255' >> /dynamicconfig/prod.yaml &&
+      echo '    constraints: {}' >> /dynamicconfig/prod.yaml &&
+      echo 'frontend.enableServerVersionCheck:' >> /dynamicconfig/prod.yaml &&
+      echo '  - value: false' >> /dynamicconfig/prod.yaml &&
+      echo '    constraints: {}' >> /dynamicconfig/prod.yaml"
+    volumes:
+      - temporal-dynamicconfig:/dynamicconfig
+    networks:
+      - dittofeed-network-lite
 
   temporal-ui:
     profiles: ["temporal-ui"]
@@ -167,6 +171,7 @@ volumes:
   clickhouse_lib:
   clickhouse_log:
   blob-storage:
+  temporal-dynamicconfig: 
 
 networks:
   dittofeed-network-lite:
