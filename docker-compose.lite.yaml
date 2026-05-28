@@ -58,7 +58,7 @@ services:
     networks:
       - dittofeed-network-lite
   temporal:
-    container_name: temporal
+    #container_name: temporal
     restart: always
     logging:
       driver: "local"
