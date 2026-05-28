@@ -92,7 +92,7 @@ services:
           - value: false
             constraints: {}
         EOF
-        /etc/temporal/entrypoint.sh
+        /start-temporal.sh
 
   temporal-ui:
     profiles: ["temporal-ui"]
